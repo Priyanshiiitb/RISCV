@@ -182,9 +182,99 @@ To compile and execute the C code in RISC-V gnu toolchain follow the steps given
 ```
 
 riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o signedHighest.o unsignedHighest.c 
-spike  pk signedHighest.o 
+spike  pk signedHighest.o
 ```
-**Output of the execution**
-![Screenshot from 2023-08-19 22-27-58](https://github.com/Priyanshiiitb/RISCV/assets/140998626/3fcb7b59-54e0-44be-a4b9-45e86de2e26e)
 
- 
+## Day - 2 : Introduction to ABI and Basic Verification Flow
+
+### Introduction to Application Binary Interface
+* The application program can directly access the registers of the RISC V architecture using something known as system calls. The ABI (also known as system call interface enables the application to access the hardware resources via registers.
+  
+* In RISC V architecture, the width of the register is defined as XLEN. For RV64 and RV32, the widths are 64 bits and 32 bits, respectively.
+  
+* RISC V belongs to the little endian memory addressing system, which means that the least significant byte of a word is stored in the smallest memory address.
+
+An Application Binary Interface is a set of rules enforced by the operating system on a specific architecture. So, Linker converts relocatable machine code to absolute machine code via ABI interface specific to the architecture of machine.
+Just like how application program interface (API) is used by application programs to access the standard libraries, an application binary interface or system  call interface is utilised to access hardware resources . The ISA is inherently divided into two parts: *User & System ISA* and *User ISA*  the latter is available to the user directly by system calls. 
+  
+Now, how does the ABI access the hardware resources? 
+- It uses different registers(32 in number) which are each of width `XLEN = 32 bit` for RV32 (~`XLEN = 64 for RV64`) . On a higher level of abstraction these registers are accessed by their respective ABI names.
+  
+  For base integer instructions there are broadly 3 types of of such registers:
+  - I-type : For instructions having immediate values as operands.
+  - R-type : For instructions having only registers as operands.
+  - S-type : For instructions used for storing operations.
+
+So, it is system call interface used by the application program to access the registers specific to architecture. Overhere the architecture is RISC-V, so to access 32 registers of RISC-V below is the table which shows the calling convention (ABI name) given to registers for the application programmer to use.
+
+
+### Load,Add And Store Instructions
+```
+ld x8,16(x23)
+add x8,x29,x8
+sd x8,8(x23)
+```
+![Screenshot from 2023-08-20 11-33-11](https://github.com/Priyanshiiitb/RISCV/assets/140998626/dedf4c4c-2b88-466d-8594-cc98213b8808)
+![Screenshot from 2023-08-20 11-33-19](https://github.com/Priyanshiiitb/RISCV/assets/140998626/09b4b31a-c3a0-4b98-ac18-5b68f2e3c637)
+![Screenshot from 2023-08-20 11-33-27](https://github.com/Priyanshiiitb/RISCV/assets/140998626/c7ba9cbd-caf5-46e3-8034-df0e795b7aba)
+
+
+### Example of ABI
+Consider the C code given below which calculates the sum from 1 to 9 :
+```
+#include<stdio.h>
+
+extern int load(int x, int y);
+
+int main()
+{
+    int result = 0;
+    int count = 9;
+    result = load(0x0,count+1);
+    printf("Sum of numbers from 1 to %d is %d\n",count,result);
+    
+}
+```
+
+Consider the assembly code (ASM) given below :
+```
+.section .text 
+.global load
+.type load, @function
+
+load:
+    add a4, a0, zero
+    add a2, a0, a1
+    add a3, a0, zero
+loop : add a4, a3, a4
+       addi a3, a3, 1
+       blt a3, a2, loop
+       add a0, a4, zero
+       ret
+```
+
+
+How to Perform
+```
+cd ~/RISCV-ISA/riscv_isa_labs/day_2/lab1/
+riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o custom1_to9.o custom1_to_9.c load.S
+riscv64-unknown-elf-objdump -d custom1_to9.o | less
+spike pk custom1_to9.o
+```
+
+**Outputs of the Lab**
+![Screenshot from 2023-08-20 10-42-26](https://github.com/Priyanshiiitb/RISCV/assets/140998626/49291d34-dd03-4318-9e33-3e59d86253f9)
+![Screenshot from 2023-08-20 10-44-17](https://github.com/Priyanshiiitb/RISCV/assets/140998626/d21171e1-25c8-46dc-8c4e-24e8a05c677d)
+
+
+
+### Lab to run c program on RISC-V CPU
+```
+cd ~/riscv_workshop_collaterals/labs/
+chmod 777 rv32im.sh
+./rv32im.sh  # Contains necessary commands to convert C to hex
+```
+**Output, Script(rv32im.sh) and firmare.hex**
+
+!![Screenshot from 2023-08-20 11-03-01](https://github.com/Priyanshiiitb/RISCV/assets/140998626/8f20bdb8-1020-4e4d-bb61-eab299e357c8)
+
