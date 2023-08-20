@@ -155,7 +155,7 @@ riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o unsigned.o unsigned.c
 spike  pk unsigned.o 
 ```
 
-**Output of the execution**
+### Output of the execution
 ![Screenshot from 2023-08-19 21-57-36](https://github.com/Priyanshiiitb/RISCV/assets/140998626/0b40237f-e5fb-44a9-a822-c0034721c795)
 
 
@@ -262,7 +262,7 @@ riscv64-unknown-elf-objdump -d custom1_to9.o | less
 spike pk custom1_to9.o
 ```
 
-**Outputs of the Lab**
+### Outputs of the Lab
 ![Screenshot from 2023-08-20 10-42-26](https://github.com/Priyanshiiitb/RISCV/assets/140998626/49291d34-dd03-4318-9e33-3e59d86253f9)
 ![Screenshot from 2023-08-20 10-44-17](https://github.com/Priyanshiiitb/RISCV/assets/140998626/d21171e1-25c8-46dc-8c4e-24e8a05c677d)
 
@@ -277,4 +277,171 @@ chmod 777 rv32im.sh
 **Output, Script(rv32im.sh) and firmare.hex**
 
 !![Screenshot from 2023-08-20 11-03-01](https://github.com/Priyanshiiitb/RISCV/assets/140998626/8f20bdb8-1020-4e4d-bb61-eab299e357c8)
+
+## Day - 3 : Digital Logic with TL-Verilog and Makerchip
+### Logic Gates
+
+
+### Multiplexer Using Ternary Operator
+Consider the verilog code for multiplexer gicen below :
+```
+assign f = s ? x1 : x0;
+```
+This code uses ternary operator that will realize a simple 2:1 multiplexer hardware in which the output f follows x1 if s is 1 otherwise it will follow x0. The harware and logic gate representation l is shown below :
+![Screenshot from 2023-08-20 23-18-22](https://github.com/Priyanshiiitb/RISCV/assets/140998626/527a7dea-48e3-4a21-850f-839fde5106a7)
+
+
+
+The higher bit multiplexers can also be realized using the coditional operator. Consider the 4:1 multiplexer code given below :
+
+```
+assign f = sel[0] ? a : (sel[1] ? b : (sel[2] ? c : d));
+```
+This code creates a priority for the inputs with input a getting the highest and input d getting the least. Instead of realizing as a single 4:1 multiplexer it will create a series of 2:1 multiplexers. In this case the sel is a one hot vector i.e, only one of the bit in the sel will be high at a time. The hardware realization is shown below :
+
+![Screenshot from 2023-08-20 23-18-32](https://github.com/Priyanshiiitb/RISCV/assets/140998626/7c982a86-7d36-44b3-9946-9f9dc14466b8)
+
+
+
+### Basic Combinational Circuits in Makerchip
+
+#### Pythagorean Example Demo
+
+
+![Screenshot from 2023-08-20 17-11-43](https://github.com/Priyanshiiitb/RISCV/assets/140998626/d115c275-ee6d-46d5-a534-a6589e78f978)
+
+
+
+
+
+
+
+#### AND gate
+
+The TL-Verilog code is shown below :
+```
+   $out = $in1 && $in2;
+```
+![Screenshot from 2023-08-20 17-18-36](https://github.com/Priyanshiiitb/RISCV/assets/140998626/64271452-8b2a-46a2-b35d-6e8ca5fd4f1e)
+
+
+
+
+#### XOR gate
+
+The TL-Verilog code is shown below :
+```
+   $out = $in1 ^ $in2;
+```
+![Screenshot from 2023-08-20 21-49-12](https://github.com/Priyanshiiitb/RISCV/assets/140998626/b0d8c5b5-d551-46e6-b30e-d8bc39049652)
+
+
+#### Vector Addition
+
+The TL-Verilog code is shown below :
+```
+   $out[4:0] = $in1[3:0] + $in2[3:0];
+```
+![Screenshot from 2023-08-20 21-51-53](https://github.com/Priyanshiiitb/RISCV/assets/140998626/b79eacf0-2db5-4e66-a216-9b11dbd218e6)
+
+
+#### 2:1 Multiplexer
+
+The TL-Verilog code is shown below :
+```
+   $out = $sel ? $in1 : $in0;
+```
+![Screenshot from 2023-08-20 21-56-44](https://github.com/Priyanshiiitb/RISCV/assets/140998626/75962fd3-0c1a-4a23-9db9-5a8f82836e4e)
+
+
+#### 2:1 Vector Multiplexer
+
+The TL-Verilog code is shown below :
+```
+   $out[7:0] = $sel ? $in1[7:0] : $in0[7:0];
+```
+![Screenshot from 2023-08-20 21-58-11](https://github.com/Priyanshiiitb/RISCV/assets/140998626/2ecea26a-acc5-4325-9dc8-195635b105e5)
+
+
+#### Calculator
+
+The TL-Verilog code is shown below :
+```
+   $reset = *reset;
+   
+   
+   $op[1:0] = $random[1:0];
+$val1[31:0] = $rand[3:0];
+$val2[31:0] = $rand[3:0];
+
+$div[31:0] = $val1/$val2;
+$add[31:0] = $val1+$val2;
+$mul[31:0] = $val1*$val2;
+$sub[31:0] = $val1-$val2;
+
+$out[31:0] = $op[1] ? ($op[0] ? $div : $add):($op[0] ? $mul : $sub) ;
+```
+
+
+
+![Screenshot from 2023-08-20 22-38-42](https://github.com/Priyanshiiitb/RISCV/assets/140998626/d36a232a-7f05-48a4-bfbe-ba5d1941ac30)
+
+
+### Sequential Circuits
+A sequential circuit is a type of digital circuit that employs memory elements to store information and produce outputs based not only on the current input values but also on the circuit's previous state. Unlike combinational circuits, which generate outputs solely based on the present input values, sequential circuits incorporate feedback loops and memory elements like flip-flops or registers to maintain and utilize their internal state.
+
+
+### Basic Sequential Circuits in Makerchip
+
+#### Fibonacci Series
+
+The TL-Verilog code for fibonacci series is shown below :
+```
+   $reset = *reset;
+   $num[31:0] = $reset ? 1 : (>>1$num + >>2$num);
+```
+
+___
+![Screenshot from 2023-08-20 23-25-08](https://github.com/Priyanshiiitb/RISCV/assets/140998626/048b46f8-82e3-4e5f-a6f7-270ef095cb55)
+
+The block diagram of the fibonacci series generator is shown below :
+![Screenshot from 2023-08-20 22-51-50](https://github.com/Priyanshiiitb/RISCV/assets/140998626/72c8eaf2-71c1-439d-8ad6-04ab8cf24016)
+
+#### Free running counter
+
+The TL-Verilog code for free running counter is shown below :
+```
+   $reset = *reset;
+   $cnt[31:0] = $reset ? 0 : (>>1$cnt + 1);
+```
+The block diagram of the free running counter is shown below :
+![Screenshot from 2023-08-20 23-26-55](https://github.com/Priyanshiiitb/RISCV/assets/140998626/b5e6b50a-081b-41d5-9f4b-243672c761a3)
+
+
+
+#### Sequential Calculator
+The TL-verilog code for sequential calculator is shown below :
+```
+   $reset = *reset;
+   
+   $cnt2[2:0] = $reset ? 0 : (>>1$cnt2 + 1);
+   $cnt3[1:0] = $reset ? 0 : (>>1$cnt3 + 1);
+   
+   $op[1:0] = $cnt3;
+   
+   $val1[31:0] = >>1$out;
+   $val2[31:0] = $cnt2;
+   $sum[31:0] = $val1+$val2;
+   $diff[31:0] = $val1-$val2;
+   $prod[31:0] = $val1*$val2;
+   $div[31:0] = $val1/$val2;
+   
+   $out[31:0] = $reset ? 32'h0 : ($op[1] ? ($op[0] ? $div : $prod):($op[0] ? $diff : $sum));
+```
+![Screenshot from 2023-08-20 23-28-59](https://github.com/Priyanshiiitb/RISCV/assets/140998626/8246fc2d-a43a-4ecf-92d0-4141e0e5abf2)
+
+
+
+![Screenshot from 2023-08-20 23-14-05](https://github.com/Priyanshiiitb/RISCV/assets/140998626/ec55db5e-4375-4faf-ab45-91c6170cee69)
+
 
