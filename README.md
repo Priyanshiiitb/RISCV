@@ -442,6 +442,21 @@ The TL-verilog code for sequential calculator is shown below :
 
 
 
+
 ![Screenshot from 2023-08-20 23-14-05](https://github.com/Priyanshiiitb/RISCV/assets/140998626/ec55db5e-4375-4faf-ab45-91c6170cee69)
 
+## Acknowledgement
+- Kunal Ghosh, VSD Corp. Pvt. Ltd.
+- Kanish R,Colleague,IIIT B
+- Alwin Shaju,colleague,IIITB
 
+
+  
+## Reference 
+- https://www.vsdiat.com
+- https://en.wikipedia.org/wiki/Toolchain
+- https://en.wikipedia.org/wiki/GNU_toolchain
+- https://github.com/riscv/riscv-gnu-toolchain
+- https://github.com/KanishR1
+- https://github.com/riscv-software-src/homebrew-riscv/tree/main
+- https://github.com/stevehoover
