@@ -445,6 +445,237 @@ The TL-verilog code for sequential calculator is shown below :
 
 ![Screenshot from 2023-08-20 23-14-05](https://github.com/Priyanshiiitb/RISCV/assets/140998626/ec55db5e-4375-4faf-ab45-91c6170cee69)
 
+### Pipelining
+Pipelining or timing abstract is an important feature in TL verilog as it can be implemented very easily with fewer codes as compared to system verilog which reduces bugs to a great extent. An example of the pipeling for pythogoras theorem using both TL verilog and system verilog in this repo . In TL verilog pipeling can be implemented by defining the pipeline as |calc and the different pipeline stages should be properly align and are indicated by @1, @2 and so on.
+
+
+### Basic Pipelined Circuits
+
+#### Pipelined Pythagorean
+The TL-Verilog code is given below:
+```
+\m5_TLV_version 1d: tl-x.org
+\m5
+   
+   // =================================================
+   // Welcome!  New to Makerchip? Try the "Learn" menu.
+   // =================================================
+   
+   //use(m5-1.0)   /// uncomment to use M5 macro library.
+\SV
+   // Macro providing required top-level module definition, random
+   // stimulus support, and Verilator config.
+   m5_makerchip_module   // (Expanded in Nav-TLV pane.)
+   
+   `include "sqrt32.v"
+\TLV
+   $reset = *reset;
+   $aa = $rand1[3:0];
+   $bb = $rand2[3:0];
+   |calc
+      @1
+         $aa_sq[31:0] = $aa * $aa;
+      @2
+         $bb_sq[31:0] = $bb * $bb;
+      @3
+         $cc_sq[31:0] = $aa_sq + $bb_sq;
+      @4
+         $out[31:0] = sqrt($cc_sq);
+   
+   // Assert these to end simulation (before Makerchip cycle limit).
+   *passed = *cyc_cnt > 40;
+   *failed = 1'b0;
+\SV
+   endmodule
+```
+ ___
+ **@** - Represents the pipelined stage number.
+ 
+ 
+
+![Screenshot from 2023-08-21 10-34-52](https://github.com/Priyanshiiitb/RISCV/assets/140998626/b4ddaf43-c4d9-4dbf-a34f-cf3db07cac9e)
+
+
+#### Error Detection Demo
+The TL-Verilog code is given below :
+```
+|comp
+      @1
+         $err1 = $bad_input || $illegeal_op;
+      @3
+         $err2 = $err1 || $over_flow;
+      @6
+         $err3 = $err2 || $div_by_zer0;
+
+```
+
+![Screenshot from 2023-08-21 10-55-17](https://github.com/Priyanshiiitb/RISCV/assets/140998626/524ada40-6216-4054-811a-b10b3da801bf)
+
+
+#### Counter and Calculator in Pipeline
+The block diagram of the counter with calculator in pipeline is shown below :
+
+
+The TL-Verilog code is given below :
+```
+   $reset = *reset;
+   $op[1:0] = $random[1:0];
+   $val2[31:0] = $rand2[3:0];
+   
+   |calc
+      @1
+         $val1[31:0] = >>1$out;
+         $sum[31:0] = $val1+$val2;
+         $diff[31:0] = $val1-$val2;
+         $prod[31:0] = $val1*$val2;
+         $div[31:0] = $val1/$val2;
+         $out[31:0] = $reset ? 32'h0 : ($op[1] ? ($op[0] ? $div : $prod):($op[0] ? $diff : $sum));
+         
+         $cnt[31:0] = $reset ? 0 : (>>1$cnt + 1); 
+
+```
+
+
+
+#### 2 Cycle Calculator
+The block diagram of the 2 cycle calculator is shown below:
+![Screenshot from 2023-08-21 12-02-05](https://github.com/Priyanshiiitb/RISCV/assets/140998626/31d2a406-83c4-4b85-a8d3-2bcc03b90066)
+
+
+The TL-verilog code is shown below :
+
+``` 
+$reset = *reset;
+   
+   |calc
+      @1
+         $val1[31:0] = >>1$out;
+	 $val2[31:0] = $rand2[3:0];
+
+         $sum[31:0] = $val1+$val2;
+         $diff[31:0] = $val1-$val2;
+         $prod[31:0] = $val1*$val2;
+         $quot[31:0] = $val1/$val2;
+
+         $out[31:0] = $reset ? 0 : ($op[1] ? ($op[0] ? $div : $prod):($op[0] ? $diff : $sum));
+         
+         $cnt[31:0] = $reset ? 0 : >>1$cnt + 1; 
+
+```
+
+![Screenshot from 2023-08-21 10-58-43](https://github.com/Priyanshiiitb/RISCV/assets/140998626/0201c5b3-f45f-44c5-88be-5e2be8a50e14)
+
+
+### Validity
+In Transaction-Level Verilog (TL-Verilog), validity is a concept used to track the state and timing of transactions within a design description. In TL-Verilog, transactions are used to represent higher-level actions or events that occur in a design. A transaction typically consists of a set of signals that represent the data and control information associated with that action. Validity, refers to whether a transaction is considered "valid" or "invalid" based on the state of its associated signals.
+Validity is another feature in TL verilog which is asserted if a particular transactions in a pipeline is valid or true. A new scope, called “when” scope is introduced for this and it is denoted as ?$valid. This new scope has many advantages - easier design, cleaner debug, better error checking and automated clock gating. Validity provides :
+
+* Easier debug
+* Cleaner design
+* Better error checking
+* Automated Clock gating
+
+
+### Illustration of Validity
+
+#### Distance Accumulator
+The block diagram of the distance accumulator is shown below :
+
+
+
+The TL-Verilog code is given below:
+``` 
+    calc
+      @1
+         $reset = *reset;
+      ?$valid
+         @1
+            $aa_sq[31:0] = $aa[3:0] * $aa;
+            $bb_sq[31:0] = $bb[3:0] * $bb;
+         @2
+            $cc_sq[31:0] = $aa_sq + $bb_sq;
+         @3
+            $out[31:0] = sqrt($cc_sq);
+      @4
+         $tot_dist[31:0] = $reset ? '0 : ($valid ? (>>1$tot_dist + $out) : $RETAIN);
+```
+
+Once the valid signal is asserted the previous value of result will be added with the current value and it result will get updated otherwise the previous value is retained.
+
+![Screenshot from 2023-08-21 12-04-53](https://github.com/Priyanshiiitb/RISCV/assets/140998626/da1f3a34-8cd1-4c69-965a-dd7cdbc24034)
+
+
+#### 2 Cycle Calculator with Validity
+The block diagram of 2 Cycle calculator with validity is shown below :
+
+
+The TL-Verilog code is given below :
+```
+   $reset = *reset;
+   |calc
+      @1
+         $valid = $reset ? 0 : >>1$valid+1;
+         $valid_or_reset = $valid || $reset;
+      ?$valid_or_reset
+         @1
+            $val1[31:0] = >>2$out;
+            $sum[31:0] = $val1+$val2;
+            $diff[31:0] = $val1-$val2;
+            $prod[31:0] = $val1*$val2;
+            $div[31:0] = $val1/$val2;
+            $valid = $reset ? 0 : (>>1$valid + 1);
+         @2
+            $out[31:0] = $reset  ? 32'h0 : ($op[1] ? ($op[0] ? $div : $prod):($op[0] ? $diff : $sum));
+```
+
+
+
+#### Calculator with Single Value Memory
+The block diagram of calculator with single value memory is shown below :
+
+
+
+The TL-Verilog code is given below:
+```
+   |calc
+      @0
+         $reset = *reset;
+         
+      @1
+         $val1 [31:0] = >>2$out;
+         $val2 [31:0] = $rand2[3:0];
+         
+         $valid = $reset ? 1'b0 : >>1$valid + 1'b1 ;
+         $valid_or_reset = $valid || $reset;
+         
+      ?$vaild_or_reset
+         @1   
+            $sum [31:0] = $val1 + $val2;
+            $diff[31:0] = $val1 - $val2;
+            $prod[31:0] = $val1 * $val2;
+            $div[31:0] = $val1 / $val2;
+            
+         @2   
+            $mem[31:0] = $reset ? 32'b0 :
+                         ($op[2:0] == 3'b101) ? $val1 : >>2$mem ;
+            
+            $out [31:0] = $reset ? 32'b0 :
+                          ($op[2:0] == 3'b000) ? $sum :
+                          ($op[2:0] == 3'b001) ? $diff :
+                          ($op[2:0] == 3'b010) ? $prod :
+                          ($op[2:0] == 3'b011) ? $quot :
+                          ($op[2:0] == 3'b100) ? >>2$mem : >>2$out ;
+
+```
+
+
+
+
+
+
+
+
+
 ## Acknowledgement
 - Kunal Ghosh, VSD Corp. Pvt. Ltd.
 - Kanish R,Colleague,IIIT B
